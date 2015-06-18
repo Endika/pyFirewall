@@ -1,46 +1,17 @@
 RANGE:
   TCP:
   - !!python/tuple
-    - 50000
+    - 10000
     - 65535
     - true
   UDP:
   - !!python/tuple
-    - 50000
+    - 10000
     - 65535
     - true
 TCP:
-  22: false
   80: false
-  143: false
   443: false
-  8069: false
 UDP:
-  53: false
-  68: false
   80: false
-  137: false
-  138: false
   443: false
-  546: false
-  1194: false
-  1900: false
-  5353: true
-  17500: true
-  49154: true
-  49159: true
-  49186: true
-  49212: true
-  49238: true
-  49272: true
-  49273: true
-  49305: true
-  49340: true
-  49474: true
-  49571: true
-  49621: true
-  49801: true
-  49845: true
-  49901: true
-  49955: true
-  49957: true

@@ -23,7 +23,8 @@ if os.getuid() != 0:
     sys.exit(0)
 
 LOG_FILE = 'rules.yaml'
-debug_mode = False
+debug_mode = 0
+text_mode = False
 conf = {}
 c = 0
 my_ip = socket.gethostbyname(socket.gethostname())
@@ -31,7 +32,11 @@ my_ip = socket.gethostbyname(socket.gethostname())
 
 def usage():
     print """
-%s [-d] -i <interface> -r <rules.yaml>
+%s [-d <debug level 0-2 default 0>] -t -i <interface> -r <rules.yaml>
+-d debug level 0 = only show new port detect
+               1 = include locked port
+               2 = include unlocked port
+-t text mode no used popup only console mode.
 version 0.1 by Endika Iglesias <me@endikaiglesias.com>
           """ % (sys.argv[0])
     sys.exit(2)
@@ -106,8 +111,8 @@ def load_conf():
         # Default configuration
         conf = {}
         conf['RANGE'] = {}
-        conf['RANGE']['TCP'] = [(17500, 65535, True)]
-        conf['RANGE']['UDP'] = [(17500, 65535, True)]
+        conf['RANGE']['TCP'] = [(10000, 65535, True)]
+        conf['RANGE']['UDP'] = [(10000, 65535, True)]
         conf['TCP'] = {80: False, 443: False}
         conf['UDP'] = {80: False, 443: False}
         save_conf()
@@ -180,16 +185,27 @@ def check_port(packet):
 def check_packets(p):
     global c
     global conf
+    global text_mode
     msg = None
+    level = 0
     if hasattr(p, 'dport'):
         unknown, drop, port = check_port(p)
         if unknown and port > 0:
             msg = 'NEW     '
             b_port = str(port) + ' ' * int(5 - len(str(port)))
             print "#%s::%s - %s::%s" % (c, msg, b_port, p.summary())
-            drop = easygui.ynbox(
-                ('New port detect %s \n %s' % (port, p.summary())),
-                'Block', ('Locked', 'Unlocked'))
+            if not text_mode:
+                drop = easygui.ynbox(
+                    ('New port detect %s \n %s' % (port, p.summary())),
+                    'Block', ('Locked', 'Unlocked'))
+            else:
+                option = None
+                while option != 'y' and option != 'n':
+                    option = raw_input(
+                        'New port detect %s \n%s '
+                        '\nYou locked this port[y/n]' % (
+                            port, p.summary())).lower()
+                drop = option == 'y'
             if TCP in p:
                 conf['TCP'][port] = drop == 1
             elif UDP in p:
@@ -199,10 +215,12 @@ def check_packets(p):
             create_rules()
         if drop and port > 0:
             msg = 'LOCKED  '
+            level = 1
         else:
             msg = 'UNLOCKED'
+            level = 2
     if msg:
-        if msg == 'LOCKED  ' or debug_mode:
+        if debug_mode >= level:
             b_port = str(port) + ' ' * int(5 - len(str(port)))
             print "#%s::%s - %s::%s" % (c, msg, b_port, p.summary())
     c += 1
@@ -211,10 +229,12 @@ def check_packets(p):
 def init():
     global LOG_FILE
     global debug_mode
+    global text_mode
     interface = 'eth0'
     try:
-        options, remainder = getopt.getopt(sys.argv[1:], 'i:r:h:ird:id:rd',
-                                           ['interface=', 'rules='])
+        options, remainder = getopt.getopt(
+            sys.argv[1:], 't:i:r:h:irdt:idt:rdt:it:rt',
+            ['interface=', 'rules=', 'debug=', 'text-mode='])
     except getopt.GetoptError:
         usage()
 
@@ -224,7 +244,9 @@ def init():
         elif opt in ('-r', '--rules'):
             LOG_FILE = arg
         elif opt in ('-d', '--debug'):
-            debug_mode = True
+            debug_mode = arg
+        elif opt in ('-t', '--text-mode'):
+            text_mode = True
         else:
             usage()
     return interface
