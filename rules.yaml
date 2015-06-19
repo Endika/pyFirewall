@@ -1,17 +1,146 @@
 RANGE:
   TCP:
   - !!python/tuple
-    - 10000
+    - 60000
     - 65535
     - true
   UDP:
   - !!python/tuple
-    - 10000
+    - 60000
     - 65535
     - true
 TCP:
   80: false
   443: false
+  445: false
+  5228: false
 UDP:
+  53: false
+  68: false
   80: false
+  137: false
+  138: false
   443: false
+  546: true
+  1194: false
+  1900: false
+  5353: true
+  17500: false
+  35837: false
+  49185: true
+  49261: false
+  49374: false
+  49488: true
+  49517: true
+  49638: true
+  49682: false
+  49731: true
+  49739: false
+  49821: true
+  49977: false
+  49981: false
+  50053: false
+  50060: false
+  50176: false
+  50269: false
+  50326: true
+  50434: false
+  50445: true
+  50530: false
+  50561: false
+  50777: true
+  50806: true
+  50833: true
+  50973: false
+  51100: true
+  51162: false
+  51299: true
+  51335: false
+  51379: false
+  51440: false
+  51547: true
+  51576: true
+  51736: true
+  51851: false
+  51876: false
+  52052: true
+  52132: true
+  52134: true
+  52137: true
+  52139: false
+  52143: true
+  52144: true
+  52169: false
+  52180: false
+  52220: false
+  52317: false
+  52541: true
+  52897: false
+  52976: false
+  53126: true
+  53156: true
+  53265: true
+  53302: true
+  53446: false
+  53498: true
+  53689: true
+  53698: false
+  53857: true
+  53881: false
+  53882: false
+  53884: false
+  53936: true
+  54216: true
+  54246: false
+  54321: false
+  54862: true
+  54886: true
+  55041: true
+  55104: false
+  55339: true
+  55352: true
+  55424: false
+  55445: false
+  55531: true
+  55961: false
+  56040: true
+  56232: true
+  56274: false
+  56340: true
+  56880: false
+  56914: true
+  56943: true
+  56997: false
+  57027: false
+  57042: false
+  57057: true
+  57177: true
+  57219: false
+  57581: false
+  57619: true
+  57621: false
+  57691: true
+  57760: true
+  57778: false
+  57866: true
+  57879: true
+  57942: true
+  57981: true
+  58266: true
+  58368: true
+  58456: true
+  58540: false
+  58544: true
+  58648: true
+  58669: false
+  58947: true
+  59021: true
+  59065: false
+  59239: true
+  59260: true
+  59287: true
+  59335: true
+  59367: true
+  59481: true
+  59622: true
+  59935: true

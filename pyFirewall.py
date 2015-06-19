@@ -25,6 +25,7 @@ if os.getuid() != 0:
 LOG_FILE = 'rules.yaml'
 debug_mode = 0
 text_mode = False
+force_clean = False
 conf = {}
 c = 0
 my_ip = socket.gethostbyname(socket.gethostname())
@@ -32,11 +33,12 @@ my_ip = socket.gethostbyname(socket.gethostname())
 
 def usage():
     print """
-%s [-d <debug level 0-2 default 0>] -t -i <interface> -r <rules.yaml>
+%s -t -f [-d <debug level 0-2 default 0>] -i <interface> -r <rules.yaml>
 -d debug level 0 = only show new port detect
                1 = include locked port
                2 = include unlocked port
 -t text mode no used popup only console mode.
+-f force clean my iptables rules
 version 0.1 by Endika Iglesias <me@endikaiglesias.com>
           """ % (sys.argv[0])
     sys.exit(2)
@@ -49,7 +51,7 @@ def save_conf():
         outfile.write(yaml.dump(conf, default_flow_style=False))
 
 
-def clean_iptables():
+def _clean_iptables():
     # Clean All RULES
     os.system('iptables -F')
     os.system('iptables -X')
@@ -63,13 +65,14 @@ def clean_iptables():
 
 
 def signal_handler(signal, frame):
-        clean_iptables()
+        management_rules(add=False)
         sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
 
-def create_rules():
+def management_rules(add=True):
     global conf
+    add = '-A' if add else '-D'
     for a in conf.keys():
         if a == 'RANGE':
             for proto in conf['RANGE'].keys():
@@ -77,8 +80,8 @@ def create_rules():
                     if tupla[2]:  # Only DROP ports
                         action = 'DROP' if tupla[2] else 'ACCEPT'
                         os.system(
-                            'iptables -A INPUT -p %s --sport %s -j %s' % (
-                                proto,
+                            'iptables %s INPUT -p %s --sport %s -j %s' % (
+                                add, proto,
                                 str(tupla[0]) + ':' + str(tupla[1]), action))
                         # os.system(
                         #     'iptables -A INPUT -p %s --dport %s -j %s' % (
@@ -88,8 +91,8 @@ def create_rules():
             for p in conf[a].keys():
                 if conf[a][p]:  # Only DROP ports
                     action = 'DROP' if conf[a][p] else 'ACCEPT'
-                    os.system('iptables -A INPUT -p %s --sport %s -j %s' % (
-                        proto, p, action))
+                    os.system('iptables %s INPUT -p %s --sport %s -j %s' % (
+                        add, proto, p, action))
                     # os.system('iptables -A INPUT -p %s --dport %s -j %s' % (
                     #     proto, p, action))
 
@@ -111,8 +114,8 @@ def load_conf():
         # Default configuration
         conf = {}
         conf['RANGE'] = {}
-        conf['RANGE']['TCP'] = [(10000, 65535, True)]
-        conf['RANGE']['UDP'] = [(10000, 65535, True)]
+        conf['RANGE']['TCP'] = [(60000, 65535, True)]
+        conf['RANGE']['UDP'] = [(60000, 65535, True)]
         conf['TCP'] = {80: False, 443: False}
         conf['UDP'] = {80: False, 443: False}
         save_conf()
@@ -203,7 +206,7 @@ def check_packets(p):
                 while option != 'y' and option != 'n':
                     option = raw_input(
                         'New port detect %s \n%s '
-                        '\nYou locked this port[y/n]' % (
+                        '\nYou locked this port [y/n]' % (
                             port, p.summary())).lower()
                 drop = option == 'y'
             if TCP in p:
@@ -211,8 +214,7 @@ def check_packets(p):
             elif UDP in p:
                 conf['UDP'][port] = drop == 1
             save_conf()
-            clean_iptables()
-            create_rules()
+            management_rules()
         if drop and port > 0:
             msg = 'LOCKED  '
             level = 1
@@ -230,29 +232,35 @@ def init():
     global LOG_FILE
     global debug_mode
     global text_mode
+    global force_clean
     interface = 'eth0'
     try:
         options, remainder = getopt.getopt(
-            sys.argv[1:], 't:i:r:h:irdt:idt:rdt:it:rt',
-            ['interface=', 'rules=', 'debug=', 'text-mode='])
+            sys.argv[1:], 'i:r:ti:td:ft:di:',
+            ['interface=', 'rules=', 'debug='])
     except getopt.GetoptError:
         usage()
-
     for opt, arg in options:
         if opt in ('-i', '--interface'):
             interface = arg
         elif opt in ('-r', '--rules'):
             LOG_FILE = arg
         elif opt in ('-d', '--debug'):
-            debug_mode = arg
-        elif opt in ('-t', '--text-mode'):
+            try:
+                debug_mode = int(arg)
+            except Exception:
+                debug_mode = 0
+        elif opt in ('-t'):
             text_mode = True
+        elif opt in ('-f', '--force'):
+            force_clean = True
         else:
             usage()
     return interface
 
 interface = init()
 load_conf()
-clean_iptables()
-create_rules()
+if force_clean:
+    _clean_iptables()
+management_rules()
 sniff(iface=interface, prn=check_packets)
