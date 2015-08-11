@@ -14,6 +14,22 @@ TCP:
   443: false
   445: false
   5228: false
+  33033: false
+  52644: false
+  52645: false
+  52660: false
+  52662: false
+  52667: false
+  52668: false
+  52676: false
+  52680: false
+  52681: false
+  52683: false
+  52685: false
+  52702: false
+  52703: false
+  52704: false
+  52705: false
 UDP:
   53: false
   68: false
@@ -25,6 +41,7 @@ UDP:
   1194: false
   1900: false
   5353: true
+  11013: false
   17500: false
   35837: false
   49185: true

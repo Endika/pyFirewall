@@ -8,7 +8,8 @@ Install
 -------
 
 * pip install scapy
-* pip install easygui
+* pip install easygui or aptitude install python-easygui
+* aptitude install python-yaml
 
 
 Example

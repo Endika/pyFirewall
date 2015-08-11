@@ -10,7 +10,11 @@ try:
 except Exception, e:
     print "You need install easygui python module"
     raise
-import yaml
+try:
+    import yaml
+except Exception, e:
+    print "You need install yaml python module"
+    raise
 import os
 import socket
 import signal
